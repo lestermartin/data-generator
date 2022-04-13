@@ -12,7 +12,6 @@ import org.apache.commons.lang3.StringUtils;
 public class ServerLogGenerator {
 
     private String fieldTokenizer = ",";
-    private List<String> ipAddresses = null;
     private Float[] hourlyWeights = {
             0.07f, 0.07f, 0.01f, 0.01f, 0.02f, 0.10f,
             0.04f, 0.04f, 0.04f, 0.04f, 0.04f, 0.04f,
@@ -20,6 +19,7 @@ public class ServerLogGenerator {
             0.04f, 0.04f, 0.04f, 0.04f, 0.04f, 0.04f
     };
     private List<Float> shuffledHourlyWeights = null;
+    private List<String> ipAddresses = null;
     private String[] appIds = {
             "Tomcat", "Apache", "WebLogic", "Payroll", "HRIS", "ERP", "CRM",
             "DB2", "MySQL", "PostgreSQL", "MongoDB", "Cassandra",
@@ -73,7 +73,7 @@ public class ServerLogGenerator {
             "bug ", "bugs ", "more bugs ", "heckofa lot of bugs ", "minivan money level of bugs ",
             "bug ", "bugs ", "more bugs ", "heckofa lot of bugs ", "minivan money level of bugs ",
             "bug ", "bugs ", "more bugs ", "heckofa lot of bugs ", "minivan money level of bugs ",
-            "bug ", "bugs ", "more bugs ", "heckofa lot of bugs ", "minivan money level of bugs ",
+            "bug ", "bugs ", "more bugs ", "heckofa lot of bugs ", "minivan money level of bugs "
     };
 
     public ServerLogGenerator() {
@@ -89,35 +89,49 @@ public class ServerLogGenerator {
         for(int k=201; k < 216; k++) {
             ipAddresses.add("77." + k + ".177.88");
         }
+
+        //shuffle the hourly weighting of the total number of logs to produce for the day
+        shuffledHourlyWeights = Arrays.asList(hourlyWeights);
+        Collections.shuffle(shuffledHourlyWeights);
+        System.out.println("hourly weights; " + Arrays.toString(shuffledHourlyWeights.toArray()));
     }
 
     public static void main(String[] args) {
+        System.out.println("*** DATA GENERATION TIME; server log style!");
+        if(args.length != 3) {
+            System.out.println("ERR: 3 args are required");
+            System.out.println(" args list: logDay, numEvents, logDirectory");
+            System.out.println("   example: 2021-07-01 240000 /Users/lester/dev/bogus/");
+            System.exit(404);
+        }
+        //TODO: validation logic on cli args
+        String logDate = args[0];
+        System.out.println("       logDay = " + logDate);
+        int recsThisDay = Integer.parseInt(args[1]);
+        System.out.println("    numEvents = " + recsThisDay);
+        String fqDirName = args[2];
+        System.out.println(" logDirectory = " + fqDirName);
 
-        //240000 recsThisDay is (current) goal
-        int recsThisDay = 24000;  // TODO: pass this in as a parameter
-        String logDate = "2021-07-01";  //TODO: SAME AS ^^^^^
-        String fqDirName = "/Users/lester/dev/bogus/";  //TODO: parameterize!!
-        //TODO: print out all the properties received
+
 
         ServerLogGenerator jenny = new ServerLogGenerator();
 
-        //shuffle the hourly weighting of the total number of logs to produce for the day
-        List<Float> shuffledHourlyWeights = Arrays.asList(jenny.hourlyWeights);
-        Collections.shuffle(shuffledHourlyWeights);
-        System.out.println("hourly weights; " + Arrays.toString(shuffledHourlyWeights.toArray()));
-
         //loop thru the 24 randomized weighted hours
-        for(int hour = 0; hour < shuffledHourlyWeights.size(); hour++) {
+        for(int hour = 0; hour < jenny.shuffledHourlyWeights.size(); hour++) {
             //pretty up the single digit hour values to have a left-padded space
             String twoCharHour = String.format("%02d", hour);
             //break the total/day into totals/hour that use the uniquely mixed hourly weights
-            int recsThisHour = (int) (shuffledHourlyWeights.get(hour) * recsThisDay);
+            int recsThisHour = (int) (jenny.shuffledHourlyWeights.get(hour) * recsThisDay);
             //stand up a List to hold all records for this hour
             List<String> singleHourLogLines = new ArrayList<String>(recsThisHour);
 
             //need to spread out the specific hour into even # recs/min
             int recsPerMin = 0;
-            if(recsThisHour < 100) {recsPerMin = recsThisHour;} else {recsPerMin = recsThisHour / 45;};
+            if(recsThisHour < 100) {
+                recsPerMin = recsThisHour;
+            } else {
+                recsPerMin = (recsThisHour / 45) + 1;
+            };
             int counterRecsThisMin = 0;
             int currMin = 11;
             for(int i=1; i <= recsThisHour; i++) {
