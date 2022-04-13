@@ -1,9 +1,23 @@
 # Compiled class file
 *.class
 
+# Build Files #
+target
+build
+classes
+
 # Log file
 *.log
+logs
+log
 
+# Idea Files #
+*.iml
+.idea
+
+# Eclipse Files #
+.settings
+.classpath
 # BlueJ files
 *.ctxt
 
@@ -17,6 +31,9 @@
 *.ear
 *.zip
 *.tar.gz
+*.gz
+*.tgz
+*.tar
 *.rar
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
