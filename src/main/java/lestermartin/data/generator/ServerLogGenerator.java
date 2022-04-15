@@ -81,11 +81,14 @@ public class ServerLogGenerator {
         ipAddresses = new ArrayList<String>();
         ipAddresses.add("55.55.55.55");
         ipAddresses.add("99.99.99.99");
-        for(int i=100; i < 251; i++) {
-            for(int j=20; j < 53; j++) {
+        for(int i=101; i < 252; i+=2) {
+            for(int j=25; j < 51; j+=2) {
                 ipAddresses.add(i + ".101." + j + "." + i);
             }
         }
+
+        System.out.println("------ num of ipaddresses > " + ipAddresses.size());
+
         for(int k=201; k < 216; k++) {
             ipAddresses.add("77." + k + ".177.88");
         }
@@ -98,19 +101,25 @@ public class ServerLogGenerator {
 
     public static void main(String[] args) {
         System.out.println("*** DATA GENERATION TIME; server log style!");
-        if(args.length != 3) {
+        if(args.length < 3 || args.length > 4) {
             System.out.println("ERR: 3 args are required");
-            System.out.println(" args list: logDay, numEvents, logDirectory");
-            System.out.println("   example: 2021-07-01 240000 /Users/lester/dev/bogus/");
+            System.out.println(" args list: logDay, numEvents, logDay");
+            System.out.println("   example: /Users/lester/dev/bogus/ 240000 2021-07-01");
             System.exit(404);
         }
         //TODO: validation logic on cli args
-        String logDate = args[0];
-        System.out.println("       logDay = " + logDate);
+        String fqDirName = args[0];
+        System.out.println(" logDirectory = " + fqDirName);
         int recsThisDay = Integer.parseInt(args[1]);
         System.out.println("    numEvents = " + recsThisDay);
-        String fqDirName = args[2];
-        System.out.println(" logDirectory = " + fqDirName);
+        String logDate = args[2];
+        System.out.println("       logDay = " + logDate);
+        //SECRET argument; LOL
+        boolean dupHrInto5MinIncrements = false;
+        if(args.length == 4) {
+            dupHrInto5MinIncrements = Boolean.parseBoolean(args[3]);
+            System.out.println("      dupDays = " + dupHrInto5MinIncrements);
+        }
 
 
 
@@ -144,8 +153,16 @@ public class ServerLogGenerator {
                 counterRecsThisMin++;
             }
             //write this hour's worth of records to a file
-            jenny.writeListToFile(singleHourLogLines, fqDirName +
-                    logDate + "_" + twoCharHour + ".txt");
+            String baseFqFileName = fqDirName + logDate + "_" + twoCharHour;
+            jenny.writeListToFile(singleHourLogLines, baseFqFileName + "-00.csv");
+            //SECRET functionality!  LOL x2
+            if(dupHrInto5MinIncrements) {
+                jenny.writeListToFile(singleHourLogLines, baseFqFileName + "-05.csv");
+                for(int minute=10; minute < 56; minute+=5) {
+                    jenny.writeListToFile(singleHourLogLines, baseFqFileName +
+                            "-" + minute + ".csv");
+                }
+            }
         }
     }
 
